@@ -41,7 +41,7 @@ steps:
       - cd /var/run
       - ./cert cert.pem key.pem
       - ./server cert.pem key.pem &
-      - curl -v http://127.0.0.1:8080
+      - curl -v -k --http2 https://127.0.0.1:8080
 
   - name: dockerhub
     depends_on:
