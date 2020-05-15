@@ -1,0 +1,58 @@
+---
+kind: pipeline
+type: docker
+name: default
+
+steps:
+  - name: yamllint
+    image: sdesbure/yamllint
+    commands:
+      - yamllint -d relaxed .drone.yml
+
+  - name: gotest
+    depends_on:
+      - yamllint
+    image: golang:1.14
+    commands:
+      - cd pkg/cert
+      - go test
+
+  - name: build
+    depends_on:
+      - gotest
+    image: golang:1.14
+    environment:
+      CGO_ENABLED: "0"
+    commands:
+      - cd cmd/cert
+      - go build -o cert
+      - cd ../server
+      - go build -o server
+
+  - name: run
+    depends_on:
+      - build
+    image: ubuntu:20.04
+    commands:
+      - apt -y update
+      - apt -y install curl
+      - cp ./cmd/cert/cert /var/run/cert
+      - cp ./cmd/server/server /var/run/server
+      - cd /var/run
+      - ./cert cert.pem key.pem
+      - ./server cert.pem key.pem &
+      - curl -v http://127.0.0.1:8080
+
+  - name: dockerhub
+    depends_on:
+      - yamllint
+    image: plugins/docker
+    settings:
+      repo: hsmtkk/http2
+      username: hsmtkk
+      password:
+        from_secret: docker_hub_token
+      dockerfile: build/Dockerfile
+      auto_tag: true
+      tags:
+        - latest
