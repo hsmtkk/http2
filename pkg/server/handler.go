@@ -8,5 +8,5 @@ import (
 type MyHandler struct{}
 
 func (h *MyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf("Hello World!")
+	fmt.Fprintf(w, "Hello World!")
 }

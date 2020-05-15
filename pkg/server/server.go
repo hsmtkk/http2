@@ -22,5 +22,5 @@ func (maker *serverMakerImpl) MakeServer() *http.Server {
 		Handler: &MyHandler{},
 	}
 	http2.ConfigureServer(&server, &http2.Server{})
-	return server
+	return &server
 }
